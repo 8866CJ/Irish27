@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.dashboard.Dashboard;
 import frc.robot.dashboard.DashboardIO;
 import frc.robot.dashboard.DashboardIONT;
 import frc.robot.subsystems.drive.Drive;
@@ -26,13 +27,16 @@ import org.littletonrobotics.junction.Logger;
 
 public class RobotContainer {
   private final CommandXboxController xbox = new CommandXboxController(Constants.CONTROLLER_PORT);
+  private final Dashboard dashboard;
   private final Vision vision;
   private final Drive drive;
   private final Superstructure superstructure;
 
   public RobotContainer() {
     // REPLAY uses empty IO so the logged inputs drive the code instead of hardware.
+    // Subsystems run in the order they're created, so Dashboard goes first.
     boolean replay = Constants.MODE == Constants.Mode.REPLAY;
+    dashboard = new Dashboard(replay ? new DashboardIO() {} : new DashboardIONT());
     vision = new Vision(replay ? new VisionIO() {} : new VisionIOPhoton());
     drive = new Drive(
         replay ? new DriveIO() {} : new DriveIOTalonSRX(),
@@ -44,7 +48,7 @@ public class RobotContainer {
         replay ? new IntakeIO() {} : new IntakeIOTalonSRX(),
         replay ? new FeederIO() {} : new FeederIOSparkMax(),
         replay ? new ShooterIO() {} : new ShooterIOSparkMax(),
-        replay ? new DashboardIO() {} : new DashboardIONT(),
+        dashboard,
         vision,
         drive::isAimed);
 
@@ -109,7 +113,6 @@ public class RobotContainer {
     Logger.recordOutput("Shift/ScoreOwnSide", !opposite);
     Logger.recordOutput("Shift/SecondsLeft", Math.max(0, t - shiftEnd));
     Logger.recordOutput("Shift/MatchTime", Math.max(0, t));
-    Logger.recordOutput("Shift/IsRedAlliance",
-        DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red);
+    Logger.recordOutput("Shift/IsRedAlliance", dashboard.isRedAlliance());
   }
 }

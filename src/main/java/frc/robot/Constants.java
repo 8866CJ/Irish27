@@ -44,7 +44,7 @@ public final class Constants {
 
   // Must match the camera name in the PhotonVision UI.
   public static final String CAMERA_NAME = "limelight";
-  public static final double CAMERA_HEIGHT_M = 0.50;
+  public static final double CAMERA_HEIGHT_M = 0.402;
   public static final double CAMERA_PITCH_DEG = 20.0;
   public static final double TAG_HEIGHT_M = 1.124; // measure on the real HUB
   public static final Set<Integer> HUB_TAGS = Set.of(9, 10, 25, 26);

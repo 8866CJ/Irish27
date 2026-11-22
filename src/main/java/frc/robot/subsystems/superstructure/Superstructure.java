@@ -4,8 +4,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.dashboard.DashboardIO;
-import frc.robot.dashboard.DashboardIOInputsAutoLogged;
+import frc.robot.dashboard.Dashboard;
 import frc.robot.subsystems.vision.Vision;
 import java.util.function.BooleanSupplier;
 import org.littletonrobotics.junction.Logger;
@@ -17,11 +16,10 @@ public class Superstructure extends SubsystemBase {
   private final IntakeIO intake;
   private final FeederIO feeder;
   private final ShooterIO shooter;
-  private final DashboardIO dashboard;
+  private final Dashboard dashboard;
   private final IntakeIOInputsAutoLogged intakeInputs = new IntakeIOInputsAutoLogged();
   private final FeederIOInputsAutoLogged feederInputs = new FeederIOInputsAutoLogged();
   private final ShooterIOInputsAutoLogged shooterInputs = new ShooterIOInputsAutoLogged();
-  private final DashboardIOInputsAutoLogged dashboardInputs = new DashboardIOInputsAutoLogged();
   private final InterpolatingDoubleTreeMap shotTable = new InterpolatingDoubleTreeMap();
 
   private final Vision vision;
@@ -32,7 +30,7 @@ public class Superstructure extends SubsystemBase {
   private double targetRpm = 0;
 
   public Superstructure(
-      IntakeIO intake, FeederIO feeder, ShooterIO shooter, DashboardIO dashboard,
+      IntakeIO intake, FeederIO feeder, ShooterIO shooter, Dashboard dashboard,
       Vision vision, BooleanSupplier aimed) {
     this.intake = intake;
     this.feeder = feeder;
@@ -62,15 +60,13 @@ public class Superstructure extends SubsystemBase {
     intake.updateInputs(intakeInputs);
     feeder.updateInputs(feederInputs);
     shooter.updateInputs(shooterInputs);
-    dashboard.updateInputs(dashboardInputs);
     Logger.processInputs("Intake", intakeInputs);
     Logger.processInputs("Feeder", feederInputs);
     Logger.processInputs("Shooter", shooterInputs);
-    Logger.processInputs("DashboardInputs", dashboardInputs);
 
-    boolean tuning = dashboardInputs.tuneEnabled;
+    boolean tuning = dashboard.tuneEnabled();
     if (tuning) {
-      targetRpm = MathUtil.clamp(dashboardInputs.tuneRpm, 0, Constants.MAX_TUNE_RPM);
+      targetRpm = MathUtil.clamp(dashboard.tuneRpm(), 0, Constants.MAX_TUNE_RPM);
     } else {
       targetRpm = useVision && vision.hasTarget() ? shotTable.get(vision.getDistanceM()) : Constants.FALLBACK_RPM;
     }
