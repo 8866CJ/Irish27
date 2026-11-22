@@ -12,17 +12,19 @@ import frc.robot.dashboard.DashboardIONT;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveIO;
 import frc.robot.subsystems.drive.DriveIOTalonSRX;
-import frc.robot.subsystems.superstructure.FeederIO;
-import frc.robot.subsystems.superstructure.FeederIOSparkMax;
-import frc.robot.subsystems.superstructure.IntakeIO;
-import frc.robot.subsystems.superstructure.IntakeIOTalonSRX;
-import frc.robot.subsystems.superstructure.ShooterIO;
-import frc.robot.subsystems.superstructure.ShooterIOSparkMax;
-import frc.robot.subsystems.superstructure.Superstructure;
-import frc.robot.subsystems.superstructure.Superstructure.State;
+import frc.robot.subsystems.feeder.Feeder;
+import frc.robot.subsystems.feeder.FeederIO;
+import frc.robot.subsystems.feeder.FeederIOSparkMax;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeIO;
+import frc.robot.subsystems.intake.IntakeIOTalonSRX;
+import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.shooter.ShooterIO;
+import frc.robot.subsystems.shooter.ShooterIOSparkMax;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhoton;
+import frc.robot.superstructure.Superstructure;
 import org.littletonrobotics.junction.Logger;
 
 public class RobotContainer {
@@ -34,7 +36,7 @@ public class RobotContainer {
 
   public RobotContainer() {
     // REPLAY uses empty IO so the logged inputs drive the code instead of hardware.
-    // Subsystems run in the order they're created, so Dashboard goes first.
+    // Subsystems run in the order they're created: inputs first, Superstructure last.
     boolean replay = Constants.MODE == Constants.Mode.REPLAY;
     dashboard = new Dashboard(replay ? new DashboardIO() {} : new DashboardIONT());
     vision = new Vision(replay ? new VisionIO() {} : new VisionIOPhoton());
@@ -44,35 +46,32 @@ public class RobotContainer {
         () -> -deadband(xbox.getLeftY()),
         () -> -deadband(xbox.getLeftX()),
         () -> -deadband(xbox.getRightX()));
-    superstructure = new Superstructure(
-        replay ? new IntakeIO() {} : new IntakeIOTalonSRX(),
-        replay ? new FeederIO() {} : new FeederIOSparkMax(),
-        replay ? new ShooterIO() {} : new ShooterIOSparkMax(),
-        dashboard,
-        vision,
-        drive::isAimed);
+    Intake intake = new Intake(replay ? new IntakeIO() {} : new IntakeIOTalonSRX());
+    Feeder feeder = new Feeder(replay ? new FeederIO() {} : new FeederIOSparkMax());
+    Shooter shooter = new Shooter(replay ? new ShooterIO() {} : new ShooterIOSparkMax());
+    superstructure = new Superstructure(intake, feeder, shooter, dashboard, vision, drive::isAimed);
 
     configureBindings();
     logCommands();
   }
 
   private void configureBindings() {
-    // Left trigger: intake. B: eject jams.
-    xbox.leftTrigger().whileTrue(hold("Intake", () -> superstructure.setWanted(State.INTAKING)));
-    xbox.b().whileTrue(hold("Eject", () -> superstructure.setWanted(State.EJECTING)));
-
-    // Right trigger: auto-aim at HUB, RPM from distance, feeds when ready.
-    xbox.rightTrigger().whileTrue(Commands.startEnd(
-        () -> { drive.setState(Drive.State.AIM); superstructure.setWanted(State.SHOOTING, true); },
-        () -> { drive.setState(Drive.State.MANUAL); superstructure.setWanted(State.IDLE); })
-        .withName("AimAndShoot"));
-
-    // Right bumper: no-vision backup shot at FALLBACK_RPM.
-    xbox.rightBumper().whileTrue(hold("FallbackShot", () -> superstructure.setWanted(State.SHOOTING, false)));
+    xbox.leftTrigger().whileTrue(superstructure.intake());
+    xbox.b().whileTrue(superstructure.eject());
+    xbox.rightTrigger().whileTrue(aimAndShoot());
+    xbox.rightBumper().whileTrue(superstructure.fallbackShot());
   }
 
-  private Command hold(String name, Runnable start) {
-    return Commands.startEnd(start, () -> superstructure.setWanted(State.IDLE)).withName(name);
+  private Command aimAndShoot() {
+    return Commands.parallel(drive.aimAtHub(), superstructure.shoot()).withName("AimAndShoot");
+  }
+
+  /** Leave the starting line, then aim and shoot preloads for the rest of AUTO. */
+  public Command getAutonomousCommand() {
+    return Commands.sequence(
+        drive.leaveStartingLine().withTimeout(Constants.AUTO_LEAVE_SECONDS),
+        Commands.parallel(drive.holdAndAim(), superstructure.shoot()))
+        .withName("Auto");
   }
 
   private static void logCommands() {
@@ -86,32 +85,12 @@ public class RobotContainer {
     return MathUtil.applyDeadband(value, Constants.DEADBAND);
   }
 
-  public void resetStates() {
-    drive.setState(Drive.State.MANUAL);
-    superstructure.setWanted(State.IDLE);
-  }
-
-  /** Leave the starting line, then aim and shoot preloads for the rest of AUTO. */
-  public Command getAutonomousCommand() {
-    return Commands.sequence(
-        Commands.runOnce(() -> drive.setState(Drive.State.AUTO_LEAVE)),
-        Commands.waitSeconds(Constants.AUTO_LEAVE_SECONDS),
-        Commands.runOnce(() -> {
-          drive.setState(Drive.State.STOPPED);
-          superstructure.setWanted(State.SHOOTING, true);
-        }))
-        .withName("Auto");
-  }
-
-  // Shift timing is from the BUILT manual, Table 6-2.
-  // Teleop timer: TRANSITION 140-130, SHIFT 1-4 every 25 s, END GAME 30-0.
-  public void updateShiftDashboard() {
+  public void logMatchState() {
     double t = DriverStation.getMatchTime();
-    boolean opposite = DriverStation.isTeleop()
-        && (t > 130 || (t <= 105 && t > 80) || (t <= 55 && t > 30));
-    double shiftEnd = t > 130 ? 130 : t > 30 ? 30 + 25 * Math.floor((t - 30.001) / 25) : 0;
-    Logger.recordOutput("Shift/ScoreOwnSide", !opposite);
-    Logger.recordOutput("Shift/SecondsLeft", Math.max(0, t - shiftEnd));
+    Shift shift = Shift.current();
+    Logger.recordOutput("Shift/Current", shift);
+    Logger.recordOutput("Shift/ScoreOwnSide", shift.scoreOwnSide());
+    Logger.recordOutput("Shift/SecondsLeft", shift.secondsLeft(t));
     Logger.recordOutput("Shift/MatchTime", Math.max(0, t));
     Logger.recordOutput("Shift/IsRedAlliance", dashboard.isRedAlliance());
   }

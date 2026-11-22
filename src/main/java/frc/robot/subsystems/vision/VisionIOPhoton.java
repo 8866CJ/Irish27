@@ -1,13 +1,12 @@
 package frc.robot.subsystems.vision;
 
-import frc.robot.Constants;
 import java.util.List;
 import org.photonvision.PhotonCamera;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 public class VisionIOPhoton implements VisionIO {
-  private final PhotonCamera camera = new PhotonCamera(Constants.CAMERA_NAME);
+  private final PhotonCamera camera = new PhotonCamera(VisionConstants.CAMERA_NAME);
 
   @Override
   public void updateInputs(VisionIOInputs inputs) {

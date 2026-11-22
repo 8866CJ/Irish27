@@ -22,7 +22,7 @@ public class Robot extends LoggedRobot {
       // No USB stick: everything goes over NetworkTables and the dashboard laptop saves it.
       case REAL -> {
         Logger.addDataReceiver(new NT4Publisher());
-        LoggedPowerDistribution.getInstance(0, ModuleType.kCTRE);
+        LoggedPowerDistribution.getInstance(Ports.PDP.id, ModuleType.kCTRE);
       }
       case SIM -> Logger.addDataReceiver(new NT4Publisher());
       case REPLAY -> {
@@ -40,12 +40,11 @@ public class Robot extends LoggedRobot {
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
-    container.updateShiftDashboard();
+    container.logMatchState();
   }
 
   @Override
   public void autonomousInit() {
-    container.resetStates();
     autoCommand = container.getAutonomousCommand();
     CommandScheduler.getInstance().schedule(autoCommand);
   }
@@ -53,7 +52,6 @@ public class Robot extends LoggedRobot {
   @Override
   public void teleopInit() {
     if (autoCommand != null) autoCommand.cancel();
-    container.resetStates();
   }
 
   @Override

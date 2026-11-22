@@ -1,4 +1,4 @@
-package frc.robot.subsystems.superstructure;
+package frc.robot.subsystems.shooter;
 
 import com.revrobotics.PersistMode;
 import com.revrobotics.REVLibError;
@@ -8,20 +8,20 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
-import frc.robot.Constants;
+import frc.robot.Ports;
 
 public class ShooterIOSparkMax implements ShooterIO {
-  private final SparkMax leader = new SparkMax(Constants.SHOOTER_LEADER_ID, MotorType.kBrushless);
-  private final SparkMax follower = new SparkMax(Constants.SHOOTER_FOLLOWER_ID, MotorType.kBrushless);
+  private final SparkMax leader = new SparkMax(Ports.SHOOTER_LEADER.id, MotorType.kBrushless);
+  private final SparkMax follower = new SparkMax(Ports.SHOOTER_FOLLOWER.id, MotorType.kBrushless);
 
   public ShooterIOSparkMax() {
     SparkMaxConfig leaderConfig = new SparkMaxConfig();
-    leaderConfig.idleMode(IdleMode.kCoast).smartCurrentLimit(40);
-    leaderConfig.closedLoop.p(Constants.SHOOTER_KP).feedForward.kV(Constants.SHOOTER_KV);
+    leaderConfig.idleMode(IdleMode.kCoast).smartCurrentLimit(ShooterConstants.CURRENT_LIMIT_AMPS);
+    leaderConfig.closedLoop.p(ShooterConstants.KP).feedForward.kV(ShooterConstants.KV);
     leader.configure(leaderConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     SparkMaxConfig followerConfig = new SparkMaxConfig();
-    followerConfig.idleMode(IdleMode.kCoast).smartCurrentLimit(40).follow(leader, true);
+    followerConfig.idleMode(IdleMode.kCoast).smartCurrentLimit(ShooterConstants.CURRENT_LIMIT_AMPS).follow(leader, true);
     follower.configure(followerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
 

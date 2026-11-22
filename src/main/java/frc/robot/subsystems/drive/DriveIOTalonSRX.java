@@ -6,14 +6,14 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.StickyFaults;
 import com.ctre.phoenix.motorcontrol.TalonSRXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-import frc.robot.Constants;
+import frc.robot.Ports;
 
 public class DriveIOTalonSRX implements DriveIO {
   private final TalonSRX[] motors = {
-    new TalonSRX(Constants.FRONT_LEFT_ID),
-    new TalonSRX(Constants.FRONT_RIGHT_ID),
-    new TalonSRX(Constants.REAR_LEFT_ID),
-    new TalonSRX(Constants.REAR_RIGHT_ID),
+    new TalonSRX(Ports.DRIVE_FRONT_LEFT.id),
+    new TalonSRX(Ports.DRIVE_FRONT_RIGHT.id),
+    new TalonSRX(Ports.DRIVE_REAR_LEFT.id),
+    new TalonSRX(Ports.DRIVE_REAR_RIGHT.id),
   };
   private final Faults faults = new Faults();
   private final StickyFaults stickyFaults = new StickyFaults();

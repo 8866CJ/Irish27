@@ -2,14 +2,14 @@ package frc.robot.subsystems.drive;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
 import frc.robot.subsystems.vision.Vision;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
 public class Drive extends SubsystemBase {
-  public enum State { MANUAL, AIM, AUTO_LEAVE, STOPPED }
+  public enum State { MANUAL, AIM, AUTO_LEAVE, HOLD_AIM }
 
   private final DriveIO io;
   private final DriveIOInputsAutoLogged inputs = new DriveIOInputsAutoLogged();
@@ -25,12 +25,29 @@ public class Drive extends SubsystemBase {
     this.turn = turn;
   }
 
-  public void setState(State state) {
-    this.state = state;
+  // Commands hold a state while scheduled and return to MANUAL when they end or are interrupted.
+
+  /** Driver keeps translation; rotation locks onto the HUB when a tag is visible. */
+  public Command aimAtHub() {
+    return hold(State.AIM).withName("AimAtHub");
+  }
+
+  /** Auto only: drive straight forward off the starting line. */
+  public Command leaveStartingLine() {
+    return hold(State.AUTO_LEAVE).withName("LeaveStartingLine");
+  }
+
+  /** Auto only: stay in place and rotate onto the HUB. */
+  public Command holdAndAim() {
+    return hold(State.HOLD_AIM).withName("HoldAndAim");
+  }
+
+  private Command hold(State state) {
+    return startEnd(() -> this.state = state, () -> this.state = State.MANUAL);
   }
 
   public boolean isAimed() {
-    return vision.hasTarget() && Math.abs(vision.getYawDeg()) < Constants.AIM_TOLERANCE_DEG;
+    return vision.hasTarget() && Math.abs(vision.getYawDeg()) < DriveConstants.AIM_TOLERANCE_DEG;
   }
 
   @Override
@@ -42,8 +59,8 @@ public class Drive extends SubsystemBase {
     switch (state) {
       case MANUAL -> { x = forward.getAsDouble(); y = strafe.getAsDouble(); z = turn.getAsDouble(); }
       case AIM -> { x = forward.getAsDouble(); y = strafe.getAsDouble(); z = aimRotation(turn.getAsDouble()); }
-      case AUTO_LEAVE -> x = Constants.AUTO_LEAVE_SPEED;
-      case STOPPED -> z = aimRotation(0);
+      case AUTO_LEAVE -> x = DriveConstants.AUTO_LEAVE_SPEED;
+      case HOLD_AIM -> z = aimRotation(0);
     }
     var wheels = MecanumDrive.driveCartesianIK(x, y, z);
     io.setOutputs(wheels.frontLeft, wheels.frontRight, wheels.rearLeft, wheels.rearRight);
@@ -58,6 +75,6 @@ public class Drive extends SubsystemBase {
   // Photon yaw is positive-right, drive rotation is positive-CCW. No tag: driver keeps turn control.
   private double aimRotation(double fallback) {
     if (!vision.hasTarget()) return fallback;
-    return MathUtil.clamp(-vision.getYawDeg() * Constants.AIM_KP, -Constants.AIM_MAX_ROT, Constants.AIM_MAX_ROT);
+    return MathUtil.clamp(-vision.getYawDeg() * DriveConstants.AIM_KP, -DriveConstants.AIM_MAX_ROT, DriveConstants.AIM_MAX_ROT);
   }
 }

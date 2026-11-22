@@ -1,4 +1,4 @@
-package frc.robot.subsystems.superstructure;
+package frc.robot.subsystems.feeder;
 
 import com.revrobotics.PersistMode;
 import com.revrobotics.REVLibError;
@@ -7,14 +7,14 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
-import frc.robot.Constants;
+import frc.robot.Ports;
 
 public class FeederIOSparkMax implements FeederIO {
-  private final SparkMax motor = new SparkMax(Constants.FEEDER_ID, MotorType.kBrushless);
+  private final SparkMax motor = new SparkMax(Ports.FEEDER.id, MotorType.kBrushless);
 
   public FeederIOSparkMax() {
     SparkMaxConfig config = new SparkMaxConfig();
-    config.idleMode(IdleMode.kBrake).smartCurrentLimit(30);
+    config.idleMode(IdleMode.kBrake).smartCurrentLimit(FeederConstants.CURRENT_LIMIT_AMPS);
     motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
 

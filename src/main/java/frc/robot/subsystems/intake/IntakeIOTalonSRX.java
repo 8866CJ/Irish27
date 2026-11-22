@@ -1,4 +1,4 @@
-package frc.robot.subsystems.superstructure;
+package frc.robot.subsystems.intake;
 
 import com.ctre.phoenix.ErrorCode;
 import com.ctre.phoenix.motorcontrol.Faults;
@@ -6,17 +6,17 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.StickyFaults;
 import com.ctre.phoenix.motorcontrol.TalonSRXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-import frc.robot.Constants;
+import frc.robot.Ports;
 
 public class IntakeIOTalonSRX implements IntakeIO {
-  private final TalonSRX motor = new TalonSRX(Constants.INTAKE_ID);
+  private final TalonSRX motor = new TalonSRX(Ports.INTAKE.id);
   private final Faults faults = new Faults();
   private final StickyFaults stickyFaults = new StickyFaults();
 
   public IntakeIOTalonSRX() {
     motor.configFactoryDefault();
     motor.setNeutralMode(NeutralMode.Coast);
-    motor.configContinuousCurrentLimit(30);
+    motor.configContinuousCurrentLimit(IntakeConstants.CURRENT_LIMIT_AMPS);
     motor.enableCurrentLimit(true);
   }
 

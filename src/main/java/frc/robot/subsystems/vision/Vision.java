@@ -2,7 +2,6 @@ package frc.robot.subsystems.vision;
 
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.PhotonUtils;
 
@@ -26,18 +25,18 @@ public class Vision extends SubsystemBase {
     double yawSum = 0, pitchSum = 0;
     int count = 0;
     for (int i = 0; i < inputs.tagIds.length; i++) {
-      if (!Constants.HUB_TAGS.contains(inputs.tagIds[i])) continue;
+      if (!VisionConstants.HUB_TAGS.contains(inputs.tagIds[i])) continue;
       yawSum += inputs.yawsDeg[i];
       pitchSum += inputs.pitchesDeg[i];
       count++;
     }
     hasTarget = count > 0;
     if (hasTarget) {
-      yawDeg = yawSum / count + Constants.AIM_YAW_OFFSET_DEG;
+      yawDeg = yawSum / count + VisionConstants.AIM_YAW_OFFSET_DEG;
       distanceM = PhotonUtils.calculateDistanceToTargetMeters(
-          Constants.CAMERA_HEIGHT_M,
-          Constants.TAG_HEIGHT_M,
-          Units.degreesToRadians(Constants.CAMERA_PITCH_DEG),
+          VisionConstants.CAMERA_HEIGHT_M,
+          VisionConstants.TAG_HEIGHT_M,
+          Units.degreesToRadians(VisionConstants.CAMERA_PITCH_DEG),
           Units.degreesToRadians(pitchSum / count));
     }
 
