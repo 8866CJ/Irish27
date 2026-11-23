@@ -1,0 +1,195 @@
+{
+  "modules" : {
+    "values" : {
+      "tiles" : [ ],
+      "enabled" : true
+    },
+    "shooter-status" : {
+      "enabled" : true
+    },
+    "shooter-tuning" : {
+      "enabled" : true,
+      "settings" : {
+        "enabledTopic" : "/Dashboard/TuneEnabled",
+        "rpmTopic" : "/Dashboard/TuneRPM",
+        "robotTuningTopic" : "/AdvantageKit/RealOutputs/Super/Tuning",
+        "hasTargetTopic" : "/AdvantageKit/RealOutputs/Vision/HasTarget",
+        "readyTopic" : "/AdvantageKit/RealOutputs/Super/Ready",
+        "distanceTopic" : "/AdvantageKit/RealOutputs/Vision/DistanceM",
+        "actualRpmTopic" : "/AdvantageKit/RealOutputs/Super/ShooterRPM",
+        "maxRpm" : "5600",
+        "tableName" : "SHOT_TABLE"
+      }
+    },
+    "alliance" : {
+      "enabled" : true
+    }
+  },
+  "layout" : {
+    "values.tile-1" : [ 20.0, 20.0, 250.0, 140.0 ]
+  },
+  "team" : 8866,
+  "tabs" : [ {
+    "name" : "Irish27",
+    "tiles" : [ {
+      "type" : "matchtime",
+      "topic" : "/AdvantageKit/RealOutputs/Shift/MatchTime",
+      "title" : "Match",
+      "x" : 0,
+      "y" : 0,
+      "w" : 260,
+      "h" : 160,
+      "options" : {
+        "caution" : "30",
+        "danger" : "15",
+        "fontSize" : "48",
+        "fmsTable" : "/FMSInfo"
+      }
+    }, {
+      "type" : "boolean",
+      "topic" : "/AdvantageKit/RealOutputs/Shift/ScoreRedSide",
+      "title" : "Score Side",
+      "x" : 0,
+      "y" : 170,
+      "w" : 260,
+      "h" : 110,
+      "options" : {
+        "trueText" : "RED SIDE",
+        "falseText" : "BLUE SIDE",
+        "trueColor" : "#dc2626",
+        "falseColor" : "#2563eb"
+      }
+    }, {
+      "type" : "text",
+      "topic" : "/AdvantageKit/RealOutputs/Shift/SecondsLeft",
+      "title" : "Side Swaps In",
+      "x" : 0,
+      "y" : 290,
+      "w" : 260,
+      "h" : 110,
+      "options" : {
+        "format" : "%.0f s"
+      }
+    }, {
+      "type" : "text",
+      "topic" : "/AdvantageKit/RealOutputs/Super/State",
+      "title" : "Robot State",
+      "x" : 290,
+      "y" : 0,
+      "w" : 240,
+      "h" : 110
+    }, {
+      "type" : "text",
+      "topic" : "/AdvantageKit/RealOutputs/Drive/State",
+      "title" : "Drive State",
+      "x" : 290,
+      "y" : 120,
+      "w" : 240,
+      "h" : 110
+    }, {
+      "type" : "bar",
+      "topic" : "/AdvantageKit/SystemStats/BatteryVoltage",
+      "title" : "Battery",
+      "x" : 290,
+      "y" : 240,
+      "w" : 240,
+      "h" : 110,
+      "options" : {
+        "min" : "10",
+        "max" : "13",
+        "format" : "%.2f V"
+      }
+    }, {
+      "type" : "gauge",
+      "topic" : "/AdvantageKit/RealOutputs/Super/ShooterRPM",
+      "title" : "Shooter RPM",
+      "x" : 560.0,
+      "y" : 0.0,
+      "w" : 340.0,
+      "h" : 240.0,
+      "options" : {
+        "min" : "0",
+        "max" : "5600",
+        "format" : "%.0f",
+        "warnAbove" : ""
+      }
+    }, {
+      "type" : "text",
+      "topic" : "/AdvantageKit/RealOutputs/Super/TargetRPM",
+      "title" : "Shooter Target",
+      "x" : 560.0,
+      "y" : 250.0,
+      "w" : 160.0,
+      "h" : 110.0,
+      "options" : {
+        "format" : "%.0f"
+      }
+    }, {
+      "type" : "boolean",
+      "topic" : "/AdvantageKit/RealOutputs/Super/Ready",
+      "title" : "Shooter",
+      "x" : 730.0,
+      "y" : 250.0,
+      "w" : 170.0,
+      "h" : 110.0,
+      "options" : {
+        "trueText" : "READY",
+        "falseText" : "NOT READY"
+      }
+    }, {
+      "type" : "boolean",
+      "topic" : "/AdvantageKit/RealOutputs/Vision/HasTarget",
+      "title" : "Vision Target",
+      "x" : 930.0,
+      "y" : 0.0,
+      "w" : 220.0,
+      "h" : 110.0,
+      "options" : {
+        "trueText" : "HUB SEEN",
+        "falseText" : "NO TAG"
+      }
+    }, {
+      "type" : "boolean",
+      "topic" : "/AdvantageKit/RealOutputs/Drive/Aimed",
+      "title" : "Vision Aim",
+      "x" : 930.0,
+      "y" : 120.0,
+      "w" : 220.0,
+      "h" : 110.0,
+      "options" : {
+        "trueText" : "AIMED",
+        "falseText" : "NOT AIMED"
+      }
+    }, {
+      "type" : "text",
+      "topic" : "/AdvantageKit/RealOutputs/Vision/DistanceM",
+      "title" : "Vision Distance",
+      "x" : 930.0,
+      "y" : 240.0,
+      "w" : 220.0,
+      "h" : 110.0,
+      "options" : {
+        "format" : "%.2f m"
+      }
+    }, {
+      "type" : "chooser",
+      "topic" : "/SmartDashboard/Alliance",
+      "title" : "Setup: Alliance",
+      "x" : 0,
+      "y" : 420,
+      "w" : 260,
+      "h" : 110
+    }, {
+      "type" : "chooser",
+      "topic" : "/SmartDashboard/Auto",
+      "title" : "Setup: Auto",
+      "x" : 290,
+      "y" : 420,
+      "w" : 240,
+      "h" : 110
+    } ]
+  } ],
+  "gridSize" : 10,
+  "robotProject" : "C:\\Users\\Admin\\Desktop\\Robotics\\Code\\Irish27",
+  "locked" : false
+}

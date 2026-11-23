@@ -9,7 +9,7 @@ import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
 public class Drive extends SubsystemBase {
-  public enum State { MANUAL, AIM, AUTO_LEAVE, HOLD_AIM }
+  public enum State { MANUAL, AIM, INTAKE, AUTO_LEAVE, HOLD_AIM }
 
   private final DriveIO io;
   private final DriveIOInputsAutoLogged inputs = new DriveIOInputsAutoLogged();
@@ -27,9 +27,14 @@ public class Drive extends SubsystemBase {
 
   // Commands hold a state while scheduled and return to MANUAL when they end or are interrupted.
 
-  /** Driver keeps translation; rotation locks onto the HUB when a tag is visible. */
+  /** Tag visible: driver is locked out and vision only rotates onto the HUB. No tag: normal driving. */
   public Command aimAtHub() {
     return hold(State.AIM).withName("AimAtHub");
+  }
+
+  /** Slow driving so the intake gets the current and we don't overrun fuel. */
+  public Command intakeSpeed() {
+    return hold(State.INTAKE).withName("IntakeSpeed");
   }
 
   /** Auto only: drive straight forward off the starting line. */
@@ -58,7 +63,15 @@ public class Drive extends SubsystemBase {
     double x = 0, y = 0, z = 0;
     switch (state) {
       case MANUAL -> { x = forward.getAsDouble(); y = strafe.getAsDouble(); z = turn.getAsDouble(); }
-      case AIM -> { x = forward.getAsDouble(); y = strafe.getAsDouble(); z = aimRotation(turn.getAsDouble()); }
+      case AIM -> {
+        if (vision.hasTarget()) z = aimRotation(0);
+        else { x = forward.getAsDouble(); y = strafe.getAsDouble(); z = turn.getAsDouble(); }
+      }
+      case INTAKE -> {
+        x = forward.getAsDouble() * DriveConstants.INTAKE_DRIVE_SCALE;
+        y = strafe.getAsDouble() * DriveConstants.INTAKE_DRIVE_SCALE;
+        z = turn.getAsDouble() * DriveConstants.INTAKE_TURN_SCALE;
+      }
       case AUTO_LEAVE -> x = DriveConstants.AUTO_LEAVE_SPEED;
       case HOLD_AIM -> z = aimRotation(0);
     }

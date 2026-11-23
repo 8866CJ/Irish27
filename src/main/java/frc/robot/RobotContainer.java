@@ -25,7 +25,9 @@ import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhoton;
 import frc.robot.superstructure.Superstructure;
+import java.util.Objects;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 public class RobotContainer {
   private final CommandXboxController xbox = new CommandXboxController(Constants.CONTROLLER_PORT);
@@ -33,6 +35,7 @@ public class RobotContainer {
   private final Vision vision;
   private final Drive drive;
   private final Superstructure superstructure;
+  private final LoggedDashboardChooser<Command> autoChooser = new LoggedDashboardChooser<>("Auto");
 
   public RobotContainer() {
     // REPLAY uses empty IO so the logged inputs drive the code instead of hardware.
@@ -51,12 +54,15 @@ public class RobotContainer {
     Shooter shooter = new Shooter(replay ? new ShooterIO() {} : new ShooterIOSparkMax());
     superstructure = new Superstructure(intake, feeder, shooter, dashboard, vision, drive::isAimed);
 
+    autoChooser.addDefaultOption("Leave + Shoot", leaveAndShoot());
+    autoChooser.addOption("Do Nothing", Commands.none().withName("DoNothing"));
+
     configureBindings();
     logCommands();
   }
 
   private void configureBindings() {
-    xbox.leftTrigger().whileTrue(superstructure.intake());
+    xbox.leftTrigger().whileTrue(Commands.parallel(drive.intakeSpeed(), superstructure.intake()).withName("SlowIntake"));
     xbox.b().whileTrue(superstructure.eject());
     xbox.rightTrigger().whileTrue(aimAndShoot());
     xbox.rightBumper().whileTrue(superstructure.fallbackShot());
@@ -67,11 +73,15 @@ public class RobotContainer {
   }
 
   /** Leave the starting line, then aim and shoot preloads for the rest of AUTO. */
-  public Command getAutonomousCommand() {
+  private Command leaveAndShoot() {
     return Commands.sequence(
         drive.leaveStartingLine().withTimeout(Constants.AUTO_LEAVE_SECONDS),
         Commands.parallel(drive.holdAndAim(), superstructure.shoot()))
-        .withName("Auto");
+        .withName("LeaveAndShoot");
+  }
+
+  public Command getAutonomousCommand() {
+    return Objects.requireNonNullElseGet(autoChooser.get(), this::leaveAndShoot);
   }
 
   private static void logCommands() {
@@ -93,5 +103,6 @@ public class RobotContainer {
     Logger.recordOutput("Shift/SecondsLeft", shift.secondsLeft(t));
     Logger.recordOutput("Shift/MatchTime", Math.max(0, t));
     Logger.recordOutput("Shift/IsRedAlliance", dashboard.isRedAlliance());
+    Logger.recordOutput("Shift/ScoreRedSide", shift.scoreOwnSide() == dashboard.isRedAlliance());
   }
 }

@@ -22,7 +22,13 @@ Top level: `Ports` (every CAN ID), `Constants` (robot-wide settings only), `Shif
 
 ## Logs
 
-The robot publishes all logs over NetworkTables, and the driver dashboard saves them to the laptop (see the dashboard's `PROJECT_OVERVIEW.md`). There's no USB stick.
+The robot publishes all logs over NetworkTables, and the EmberFX dashboard saves them to the laptop (`%USERPROFILE%\.emberfx\logs`). There's no USB stick.
+
+## Dashboard (EmberFX)
+
+- **Irish27 tab:** match time, period, score side (red/blue), shooter graph and status, robot/drive state, vision, distance, battery, and the Alliance and Auto choosers. Outputs are under `/AdvantageKit/RealOutputs/`.
+- **Choosers:** `Alliance` (Driver Station / Red / Blue) and `Auto` (Leave + Shoot / Do Nothing) are AdvantageKit `LoggedDashboardChooser`s at `/SmartDashboard/Alliance` and `/SmartDashboard/Auto`, so the pick is logged and replays.
+- **Shooter Tuning tab:** comes from the `shooter-tuning` module jar in `%USERPROFILE%\.emberfx\modules`. It writes `/Dashboard/TuneEnabled` and `/Dashboard/TuneRPM`, and the robot ignores them whenever the dashboard is disconnected.
 
 ## Replay a log
 

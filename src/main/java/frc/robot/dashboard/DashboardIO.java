@@ -2,14 +2,12 @@ package frc.robot.dashboard;
 
 import org.littletonrobotics.junction.AutoLog;
 
-/** Values sent from the driver dashboard. */
+/** Shooter tuning values sent from the dashboard's Shooter Tuning tab. */
 public interface DashboardIO {
   @AutoLog
   class DashboardIOInputs {
     public boolean tuneEnabled;
     public double tuneRpm;
-    /** "Red", "Blue", or "" to use the Driver Station. */
-    public String allianceOverride = "";
   }
 
   default void updateInputs(DashboardIOInputs inputs) {}
